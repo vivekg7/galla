@@ -1,0 +1,6 @@
+# Local extracted APKs and reference dumps
+local/
+
+# OS metadata
+.DS_Store
+Thumbs.db
