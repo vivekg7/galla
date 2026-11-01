@@ -26,11 +26,12 @@ android {
         // SQLite 3.27 (docs/plans/001_offline_shop_app.md).
         minSdk = 30
         targetSdk = 37
-        versionCode = 1
-        versionName = "0.1.0"
+        versionCode = 2
+        versionName = "0.2.0"
         // Phones only: ML Kit's scanner is native code, and the x86 copies
         // (emulators, a few old tablets) would add 12 MB.
         ndk { abiFilters += listOf("arm64-v8a", "armeabi-v7a") }
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     signingConfigs {
@@ -102,5 +103,14 @@ dependencies {
     implementation(libs.mlkit.barcode)
     implementation(libs.zxing.core)
     implementation(libs.coroutines.android)
+    implementation(libs.play.services.auth)
     testImplementation(libs.junit)
+    androidTestImplementation(libs.room.testing)
+    androidTestImplementation(libs.test.runner)
+    androidTestImplementation(libs.test.junit)
+    constraints {
+        // AndroidX lifecycle brings 1.7.3, and the test APK must use the app's
+        // versions, but Room's MigrationTestHelper fails on anything below 1.8.1.
+        implementation(libs.serialization.core)
+    }
 }

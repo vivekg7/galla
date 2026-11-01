@@ -101,12 +101,14 @@ fun qtyForAmount(
 /**
  * Barcodes Galla makes for products that have none. EAN-13 numbers starting
  * with 2 are reserved by GS1 for use inside one shop, so they never clash with
- * a manufacturer's code: "200", the product id in nine digits, a check digit.
+ * a manufacturer's code: "2", the phone's number in two digits, its product
+ * number in nine (together the product id, Db.kt), a check digit. Phone 0's
+ * codes start "200", as they did before phones synced.
  */
 object Ean {
     fun forProduct(id: Long): String {
-        require(id in 1..999_999_999) { "product id out of range: $id" }
-        val body = "200" + id.toString().padStart(9, '0')
+        require(id in 1..99_999_999_999) { "product id out of range: $id" }
+        val body = "2" + id.toString().padStart(11, '0')
         return body + checkDigit(body)
     }
 
@@ -118,6 +120,9 @@ object Ean {
 
     fun isValid(code: String): Boolean = code.length == 13 && code.all(Char::isDigit) && checkDigit(code.take(12)) == code.last() - '0'
 }
+
+/** "57" for phone 0's bills, "2-57" for phone 2's: each phone numbers its own (Db.kt). */
+fun billNo(no: Long): String = if (no <= 999_999_999) "$no" else "${no / 1_000_000_000}-${no % 1_000_000_000}"
 
 /**
  * The link a UPI QR code carries (NPCI's deep-link format). Any UPI app opens

@@ -15,6 +15,7 @@ import io.github.vivekg7.galla.data.Bill
 import io.github.vivekg7.galla.data.BillLine
 import io.github.vivekg7.galla.data.Payment
 import io.github.vivekg7.galla.data.ShopInfo
+import io.github.vivekg7.galla.data.billNo
 import io.github.vivekg7.galla.data.qtyText
 import io.github.vivekg7.galla.data.rupees
 import io.github.vivekg7.galla.data.upiLink
@@ -49,7 +50,7 @@ object Slip {
     fun upiFor(
         shop: ShopInfo,
         bill: Bill,
-    ) = upiLink(shop.upiId, shop.payeeName, bill.total, "Bill ${bill.no}")
+    ) = upiLink(shop.upiId, shop.payeeName, bill.total, "Bill ${billNo(bill.no)}")
 
     private fun text(
         size: Float,
@@ -118,7 +119,7 @@ object Slip {
         if (shop.phone.isNotBlank()) block("Phone: ${shop.phone}", text(24f, color = Color.DKGRAY))
         rule()
         val small = text(24f, color = Color.DKGRAY)
-        row("Bill #${bill.no}", SimpleDateFormat("d MMM yyyy, h:mm a", Locale.ENGLISH).format(Date(bill.at)), small)
+        row("Bill #${billNo(bill.no)}", SimpleDateFormat("d MMM yyyy, h:mm a", Locale.ENGLISH).format(Date(bill.at)), small)
         rule()
 
         val itemName = text(28f, bold = true)

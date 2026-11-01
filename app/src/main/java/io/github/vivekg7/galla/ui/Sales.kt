@@ -51,6 +51,7 @@ import androidx.compose.ui.unit.dp
 import io.github.vivekg7.galla.app
 import io.github.vivekg7.galla.data.Bill
 import io.github.vivekg7.galla.data.Payment
+import io.github.vivekg7.galla.data.billNo
 import io.github.vivekg7.galla.data.rupees
 import io.github.vivekg7.galla.render.Codes
 import io.github.vivekg7.galla.render.Share
@@ -111,7 +112,7 @@ fun SalesScreen() {
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Column(Modifier.weight(1f)) {
-                            Text("Bill #${bill.no}", fontWeight = FontWeight.Medium)
+                            Text("Bill #${billNo(bill.no)}", fontWeight = FontWeight.Medium)
                             Text(format.format(Date(bill.at)), style = MaterialTheme.typography.bodySmall)
                         }
                         Column(horizontalAlignment = Alignment.End) {
@@ -170,11 +171,11 @@ fun SlipScreen(billId: Long) {
     }
 
     Column(Modifier.fillMaxSize()) {
-        Bar(b?.let { "Bill #${it.no}" } ?: "Bill", onBack = nav::back) {
+        Bar(b?.let { "Bill #${billNo(it.no)}" } ?: "Bill", onBack = nav::back) {
             IconButton(enabled = b != null && l != null && s != null, onClick = {
                 scope.launch {
                     val image = withContext(Dispatchers.Default) { Slip.render(s!!, b!!, l!!) }
-                    Share.image(context, image, "bill-${b!!.no}.png")
+                    Share.image(context, image, "bill-${billNo(b!!.no)}.png")
                 }
             }) { Icon(Icons.Share, "Share slip") }
             if (b != null && !b.void) {
@@ -183,7 +184,7 @@ fun SlipScreen(billId: Long) {
                     if (b.payment != Payment.PENDING) {
                         DropdownMenuItem(text = { Text("Mark as unpaid") }, onClick = {
                             menu = false
-                            scope.launch { app.dao.setPayment(b.id, Payment.PENDING) }
+                            scope.launch { app.dao.setPayment(b.id, Payment.PENDING, System.currentTimeMillis()) }
                         })
                     }
                     DropdownMenuItem(text = { Text("Cancel bill") }, onClick = {
@@ -226,11 +227,11 @@ fun SlipScreen(billId: Long) {
                 }
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     Button(
-                        onClick = { scope.launch { app.dao.setPayment(b.id, Payment.UPI) } },
+                        onClick = { scope.launch { app.dao.setPayment(b.id, Payment.UPI, System.currentTimeMillis()) } },
                         modifier = Modifier.weight(1f).height(52.dp),
                     ) { Text("Paid by UPI") }
                     Button(
-                        onClick = { scope.launch { app.dao.setPayment(b.id, Payment.CASH) } },
+                        onClick = { scope.launch { app.dao.setPayment(b.id, Payment.CASH, System.currentTimeMillis()) } },
                         modifier = Modifier.weight(1f).height(52.dp),
                     ) { Text("Paid in cash") }
                 }

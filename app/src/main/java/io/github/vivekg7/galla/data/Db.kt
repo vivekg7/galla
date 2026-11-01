@@ -1,6 +1,7 @@
 package io.github.vivekg7.galla.data
 
 import android.content.Context
+import androidx.room3.ColumnInfo
 import androidx.room3.Dao
 import androidx.room3.Database
 import androidx.room3.Entity
@@ -13,7 +14,10 @@ import androidx.room3.Room
 import androidx.room3.RoomDatabase
 import androidx.room3.Transaction
 import androidx.room3.Update
+import androidx.room3.migration.Migration
+import androidx.sqlite.SQLiteConnection
 import androidx.sqlite.driver.AndroidSQLiteDriver
+import androidx.sqlite.execSQL
 import kotlinx.coroutines.flow.Flow
 
 /**
@@ -23,16 +27,22 @@ import kotlinx.coroutines.flow.Flow
  * Money is whole paise and quantities are thousandths of a unit (grams,
  * millilitres, or 1000 per piece), both as Long: no floating-point rounding
  * anywhere a rupee is counted.
+ *
+ * Ids are numbered per phone so that phones syncing through Drive never hand
+ * out the same one: phone n uses n × [ID_SPAN] + 1 onwards. A phone that
+ * never syncs is phone 0, numbering from 1 as it always did
+ * (docs/plans/002_sync_between_phones.md).
  */
 @Database(
-    entities = [Product::class, StockMove::class, Bill::class, BillLine::class, Setting::class],
-    version = 1,
+    entities = [Product::class, StockMove::class, Bill::class, BillLine::class, Setting::class, Pending::class],
+    version = 2,
 )
 abstract class Db : RoomDatabase() {
     abstract fun dao(): ShopDao
 
     companion object {
         const val FILE = "galla.db"
+        const val VERSION = 2
 
         // No fallbackToDestructiveMigration: this is the shop's only copy of
         // its data, so a schema change without a migration must fail loudly.
@@ -40,12 +50,87 @@ abstract class Db : RoomDatabase() {
             Room
                 .databaseBuilder(context, Db::class.java, FILE)
                 .setDriver(AndroidSQLiteDriver())
+                .addMigrations(MIGRATION_1_2)
+                .addCallback(Triggers)
                 .build()
+
+        /** Edit times for last-edit-wins sync, and the outbox of changes not yet uploaded. */
+        val MIGRATION_1_2 =
+            object : Migration(1, 2) {
+                override suspend fun migrate(connection: SQLiteConnection) {
+                    connection.execSQL("ALTER TABLE bill ADD COLUMN updatedAt INTEGER NOT NULL DEFAULT 0")
+                    connection.execSQL("UPDATE bill SET updatedAt = at")
+                    connection.execSQL("ALTER TABLE setting ADD COLUMN updatedAt INTEGER NOT NULL DEFAULT 0")
+                    connection.execSQL(
+                        "CREATE TABLE IF NOT EXISTS `pending` (`seq` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
+                            "`tbl` TEXT NOT NULL, `rid` TEXT NOT NULL)",
+                    )
+                    Triggers.create(connection)
+                }
+            }
+    }
+
+    /**
+     * While this phone syncs, every change to the shop's data leaves a row in
+     * [Pending], so the next upload knows what to send. Triggers rather than
+     * DAO code, so no write path can forget. They are quiet while sync is off,
+     * and while changes from other phones are applied (the `sync.applying`
+     * setting, set only inside that transaction).
+     */
+    object Triggers : Callback() {
+        override suspend fun onCreate(connection: SQLiteConnection) = create(connection)
+
+        fun create(connection: SQLiteConnection) {
+            val on = "EXISTS (SELECT 1 FROM setting WHERE key = '$DEVICE') AND NOT EXISTS (SELECT 1 FROM setting WHERE key = '$APPLYING')"
+            // Stock is left out: every phone adds it up from the stock_move log.
+            val productColumns = "name, barcode, generated, unit, price, mrp, cost, lowAt, archived"
+            val triggers =
+                listOf(
+                    Triple("product_add", "INSERT ON product", "'product', NEW.id"),
+                    Triple("product_edit", "UPDATE OF $productColumns ON product", "'product', NEW.id"),
+                    Triple("move_add", "INSERT ON stock_move", "'stock_move', NEW.id"),
+                    Triple("bill_add", "INSERT ON bill", "'bill', NEW.id"),
+                    Triple("bill_edit", "UPDATE ON bill", "'bill', NEW.id"),
+                    Triple("line_add", "INSERT ON bill_line", "'bill_line', NEW.id"),
+                    Triple("setting_add", "INSERT ON setting", "'setting', NEW.key"),
+                    Triple("setting_edit", "UPDATE ON setting", "'setting', NEW.key"),
+                )
+            for ((name, event, values) in triggers) {
+                // Only the shop's details sync; this phone's own settings stay here.
+                val shared = if (name.startsWith("setting")) " AND NEW.key LIKE 'shop.%'" else ""
+                connection.execSQL(
+                    "CREATE TRIGGER IF NOT EXISTS sync_$name AFTER $event WHEN $on$shared " +
+                        "BEGIN INSERT INTO pending (tbl, rid) VALUES ($values); END",
+                )
+            }
+        }
+
+        const val DEVICE = "sync.device"
+        const val APPLYING = "sync.applying"
     }
 }
 
+/** Ids per phone: phone n numbers from n × ID_SPAN + 1. Nine digits each, which the in-store barcode needs. */
+const val ID_SPAN = 1_000_000_000L
+
 @Dao
 interface ShopDao {
+    /** Where this phone's ids start: 0 until it joins a shop's sync as phone n > 0. */
+    @Query("SELECT COALESCE((SELECT CAST(value AS INTEGER) FROM setting WHERE key = 'sync.device'), 0) * 1000000000")
+    suspend fun idBase(): Long
+
+    @Query("SELECT COALESCE(MAX(id), :base) + 1 FROM product WHERE id > :base AND id <= :base + 999999999")
+    suspend fun nextProductId(base: Long): Long
+
+    @Query("SELECT COALESCE(MAX(id), :base) + 1 FROM stock_move WHERE id > :base AND id <= :base + 999999999")
+    suspend fun nextMoveId(base: Long): Long
+
+    @Query("SELECT COALESCE(MAX(id), :base) + 1 FROM bill WHERE id > :base AND id <= :base + 999999999")
+    suspend fun nextBillId(base: Long): Long
+
+    @Query("SELECT COALESCE(MAX(id), :base) + 1 FROM bill_line WHERE id > :base AND id <= :base + 999999999")
+    suspend fun nextLineId(base: Long): Long
+
     // --- Products ---------------------------------------------------------
 
     /** Archived ones too; Inventory hides them unless asked. */
@@ -75,11 +160,12 @@ interface ShopDao {
         now: Long,
     )
 
-    @Query("UPDATE product SET stock = stock + :delta, updatedAt = :now WHERE id = :id")
+    // Not updatedAt: that is the time of the last edit, which decides between
+    // two phones' edits, and a sale is not an edit of the product.
+    @Query("UPDATE product SET stock = stock + :delta WHERE id = :id")
     suspend fun addStock(
         id: Long,
         delta: Long,
-        now: Long,
     )
 
     @Insert
@@ -88,7 +174,10 @@ interface ShopDao {
     @Query("SELECT * FROM stock_move WHERE productId = :productId ORDER BY at DESC LIMIT 30")
     fun moves(productId: Long): Flow<List<StockMove>>
 
-    /** Every stock change goes through here, so the log always explains the count. */
+    /**
+     * Every stock change goes through here, so the log always explains the
+     * count. [id] is given only where two phones must agree on it (voidBill).
+     */
     @Transaction
     suspend fun moveStock(
         productId: Long,
@@ -96,23 +185,25 @@ interface ShopDao {
         reason: Reason,
         billId: Long? = null,
         now: Long = System.currentTimeMillis(),
+        id: Long? = null,
     ) {
-        addStock(productId, delta, now)
-        insertMove(StockMove(productId = productId, delta = delta, reason = reason, billId = billId, at = now))
+        addStock(productId, delta)
+        val moveId = id ?: nextMoveId(idBase())
+        insertMove(StockMove(id = moveId, productId = productId, delta = delta, reason = reason, billId = billId, at = now))
     }
 
     /** A new product and its opening stock, logged like any restock. */
     @Transaction
     suspend fun create(product: Product): Long {
-        val id = insert(product.copy(stock = 0))
+        val id = insert(product.copy(id = nextProductId(idBase()), stock = 0))
         if (product.stock != 0L) moveStock(id, product.stock, Reason.RESTOCK)
         return id
     }
 
     // --- Bills ------------------------------------------------------------
 
-    @Query("SELECT COALESCE(MAX(no), 0) + 1 FROM bill")
-    suspend fun nextBillNo(): Long
+    @Query("SELECT COALESCE(MAX(no), :base) + 1 FROM bill WHERE no > :base AND no <= :base + 999999999")
+    suspend fun nextBillNo(base: Long): Long
 
     @Insert
     suspend fun insertBill(bill: Bill): Long
@@ -127,8 +218,10 @@ interface ShopDao {
         lines: List<BillLine>,
     ): Long {
         val now = bill.at
-        val id = insertBill(bill.copy(no = nextBillNo()))
-        insertLines(lines.map { it.copy(billId = id) })
+        val base = idBase()
+        val id = insertBill(bill.copy(id = nextBillId(base), no = nextBillNo(base)))
+        val first = nextLineId(base)
+        insertLines(lines.mapIndexed { i, line -> line.copy(id = first + i, billId = id) })
         for (line in lines) line.productId?.let { moveStock(it, -line.qty, Reason.SALE, id, now) }
         return id
     }
@@ -148,20 +241,29 @@ interface ShopDao {
     @Query("SELECT * FROM bill_line WHERE billId = :billId ORDER BY id")
     suspend fun linesNow(billId: Long): List<BillLine>
 
-    @Query("UPDATE bill SET payment = :payment WHERE id = :id")
+    @Query("UPDATE bill SET payment = :payment, updatedAt = :now WHERE id = :id")
     suspend fun setPayment(
         id: Long,
         payment: Payment,
+        now: Long,
     )
 
-    @Query("UPDATE bill SET void = 1 WHERE id = :id AND void = 0")
-    suspend fun markVoid(id: Long): Int
+    @Query("UPDATE bill SET void = 1, updatedAt = :now WHERE id = :id AND void = 0")
+    suspend fun markVoid(
+        id: Long,
+        now: Long,
+    ): Int
 
-    /** Cancels a bill and puts its items back on the shelf. */
+    /**
+     * Cancels a bill and puts its items back on the shelf. Each return is
+     * numbered after its bill line (negative, outside every phone's range),
+     * so two phones cancelling the same bill return its items only once.
+     */
     @Transaction
     suspend fun voidBill(id: Long) {
-        if (markVoid(id) == 0) return
-        for (line in linesNow(id)) line.productId?.let { moveStock(it, line.qty, Reason.VOID, id) }
+        val now = System.currentTimeMillis()
+        if (markVoid(id, now) == 0) return
+        for (line in linesNow(id)) line.productId?.let { moveStock(it, line.qty, Reason.VOID, id, now, id = -line.id) }
     }
 
     // --- Settings ---------------------------------------------------------
@@ -171,6 +273,17 @@ interface ShopDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun putSetting(setting: Setting)
+
+    @Query("SELECT value FROM setting WHERE key = :key")
+    suspend fun setting(key: String): String?
+
+    @Query("DELETE FROM setting WHERE key = :key")
+    suspend fun deleteSetting(key: String)
+
+    // --- Sync -------------------------------------------------------------
+
+    @Query("SELECT COUNT(*) FROM pending")
+    fun pendingCount(): Flow<Int>
 }
 
 /** How a product is counted and priced. Loose ones are weighed or measured. */
@@ -241,6 +354,8 @@ data class Bill(
     val total: Long,
     val payment: Payment = Payment.PENDING,
     val void: Boolean = false,
+    /** The last change (payment or cancel); the later one wins when two phones change the same bill. */
+    @ColumnInfo(defaultValue = "0") val updatedAt: Long = at,
 )
 
 /**
@@ -264,4 +379,13 @@ data class BillLine(
 data class Setting(
     @PrimaryKey val key: String,
     val value: String,
+    @ColumnInfo(defaultValue = "0") val updatedAt: Long = System.currentTimeMillis(),
+)
+
+/** A row changed on this phone and not yet uploaded: [tbl] and the row's key. Filled by [Db.Triggers]. */
+@Entity(tableName = "pending")
+data class Pending(
+    @PrimaryKey(autoGenerate = true) val seq: Long = 0,
+    val tbl: String,
+    val rid: String,
 )

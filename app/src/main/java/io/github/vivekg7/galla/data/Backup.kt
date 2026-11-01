@@ -59,6 +59,7 @@ object Backup {
             incoming.outputStream().use { input.copyTo(it) }
         }
         check(isGallaBackup(incoming)) { "That file is not a Galla backup." }
+        leaveSync(incoming)
 
         snapshot(context, File(context.filesDir, "before-restore.db"))
         context.app.db.close()
@@ -81,9 +82,19 @@ object Backup {
                         buildSet { while (c.moveToNext()) add(c.getString(0)) }
                     }
                 // A backup from a newer Galla would need a migration this one does not have.
-                tables.containsAll(listOf("product", "bill", "bill_line", "stock_move", "setting")) && db.version <= DB_VERSION
+                tables.containsAll(listOf("product", "bill", "bill_line", "stock_move", "setting")) && db.version <= Db.VERSION
             }
         }.getOrDefault(false)
 
-    private const val DB_VERSION = 1
+    /**
+     * A restored phone has older data than Drive, and numbering new bills from
+     * it would reuse ids it already uploaded. So it leaves the sync; turning
+     * sync on again takes the shop's data from Drive
+     * (docs/plans/002_sync_between_phones.md).
+     */
+    private fun leaveSync(file: File) =
+        SQLiteDatabase.openDatabase(file.path, null, SQLiteDatabase.OPEN_READWRITE).use { db ->
+            db.execSQL("DELETE FROM setting WHERE key LIKE 'sync.%'")
+            if (db.version >= 2) db.execSQL("DELETE FROM pending")
+        }
 }

@@ -1,6 +1,8 @@
 # 001 — An offline shop app for one kirana
 
-Status: built (v0.1.0, 2026-10-31).
+Status: built (v0.1.0, 2026-10-31). Revised by
+[002](002_sync_between_phones.md): the shop's phones now sync through Google
+Drive, so the app goes online for that, and only for that.
 
 ## Problem
 
@@ -122,7 +124,8 @@ not emulators), which saves 12 MB.
   the Indian subset of Open Food Facts (ODbL, needs a credit line). The
   owner chose to build the catalogue by scanning.
 - **Firebase or any sync.** Offline is the requirement, and sync is what
-  makes Vanik need a network.
+  makes Vanik need a network. Later reversed for Drive sync, when three people
+  needed the same data on three phones: [002](002_sync_between_phones.md).
 - **Bluetooth ESC/POS slip printing.** There is no printer. If one comes,
   the slip bitmap can be sent to it as it is.
 - **Barcodes with the weight or price built in** (EAN-13 variable-measure,

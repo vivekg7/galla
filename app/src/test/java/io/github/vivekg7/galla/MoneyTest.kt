@@ -2,6 +2,7 @@ package io.github.vivekg7.galla
 
 import io.github.vivekg7.galla.data.Ean
 import io.github.vivekg7.galla.data.Measure
+import io.github.vivekg7.galla.data.billNo
 import io.github.vivekg7.galla.data.isUpiId
 import io.github.vivekg7.galla.data.lineAmount
 import io.github.vivekg7.galla.data.parsePaise
@@ -51,6 +52,13 @@ class MoneyTest {
         assertEquals("200000000042", code.take(12))
         assertTrue(Ean.isValid(code))
         assertFalse(Ean.isValid("2000000000420"))
+        // Phone 3's product 42 (Db.kt numbers ids per phone).
+        assertEquals("203000000042", Ean.forProduct(3 * 1_000_000_000L + 42).take(12))
+    }
+
+    @Test fun billNumbersNamePhonesAfterTheFirst() {
+        assertEquals("57", billNo(57))
+        assertEquals("2-57", billNo(2_000_000_057))
     }
 
     @Test fun upiLinkCarriesPayeeAndExactAmount() {

@@ -8,21 +8,20 @@
         android:required="false" />
 
     <!--
-      Galla never goes online (docs/plans/001_offline_shop_app.md). ML Kit's
-      logging libraries ask for these; removing them here means Android itself
-      guarantees nothing in the app can reach the network.
+      Online only to sync the shop's phones through Google Drive, when sync is
+      on (docs/plans/002_sync_between_phones.md); everything else works with
+      no network. ML Kit's logging libraries also ask for network state, which
+      Galla does not need.
     -->
-    <uses-permission
-        android:name="android.permission.INTERNET"
-        tools:node="remove" />
+    <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission
         android:name="android.permission.ACCESS_NETWORK_STATE"
         tools:node="remove" />
 
     <!--
-      Android's own backup stays on: with the shop's data on this phone only,
-      the system's copy is a second safety net beside Settings > Export backup.
-      It runs in the OS, not in this app.
+      Android's own backup stays on: the system's copy is one more safety net
+      beside Settings > Save backup and Drive sync. It runs in the OS, not in
+      this app. A database it restores onto a new install leaves sync (Sync.kt).
     -->
     <application
         android:name=".App"
@@ -45,6 +44,19 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!--
+          ML Kit logs how scanning performs, to Google, through this backend.
+          Without it the logs have nowhere to go and are dropped: going online
+          for sync is no reason to start sending them.
+        -->
+        <service
+            android:name="com.google.android.datatransport.runtime.backends.TransportBackendDiscovery"
+            tools:node="merge">
+            <meta-data
+                android:name="backend:com.google.android.datatransport.cct.CctBackendFactory"
+                tools:node="remove" />
+        </service>
 
         <!-- Slips and label sheets are shared from the cache through this. -->
         <provider
