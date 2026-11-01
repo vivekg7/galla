@@ -1,5 +1,30 @@
-# Local extracted APKs and reference dumps
+# Local extracted APKs and reference dumps. The Vanik APK is proprietary:
+# never commit it or anything decompiled from it. This machine's release key
+# and its passwords live here too.
 local/
+
+# Gradle and Android build output
+.gradle/
+.kotlin/
+build/
+captures/
+*.apk
+*.aab
+*.hprof
+# This machine's SDK path.
+local.properties
+
+# Secrets and signing keys
+.env
+.env.*
+*.jks
+*.keystore
+*.p12
+
+# IDE
+.idea/
+*.iml
+.vscode/
 
 # OS metadata
 .DS_Store

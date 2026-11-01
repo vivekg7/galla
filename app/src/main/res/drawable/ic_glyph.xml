@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  A shop front with an awning, drawn inside the adaptive icon's 66dp safe
+  zone: a 24-unit glyph scaled 2.5x and centred in the 108-unit canvas.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <group
+        android:scaleX="2.5"
+        android:scaleY="2.5"
+        android:translateX="24"
+        android:translateY="24">
+        <path
+            android:fillColor="#FFFFFF"
+            android:pathData="M3 3h18l1.5 5.5c0 1.4-1.1 2.5-2.5 2.5s-2.5-1.1-2.5-2.5c0 1.4-1.1 2.5-2.5 2.5S12.5 9.9 12.5 8.5h-1c0 1.4-1.1 2.5-2.5 2.5S6.5 9.9 6.5 8.5C6.5 9.9 5.4 11 4 11S1.5 9.9 1.5 8.5L3 3zM3.5 12.3c.2 0 .3.1.5.1.9 0 1.8-.3 2.5-.9.7.6 1.6.9 2.5.9s1.8-.3 2.5-.9c.7.6 1.6.9 2.5.9s1.8-.3 2.5-.9c.7.6 1.6.9 2.5.9.2 0 .3 0 .5-.1V21H3.5v-8.7zM10 15v6h4v-6h-4z" />
+    </group>
+</vector>

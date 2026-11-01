@@ -1,0 +1,41 @@
+# Latest stable of each, checked 2026-10-31 (docs/plans/001_offline_shop_app.md).
+# AGP 9 compiles Kotlin itself; the Kotlin plugin below only adds the Compose
+# compiler plugin, and pins the Kotlin version.
+[versions]
+agp = "9.5.0"
+kotlin = "2.4.21"
+ksp = "2.3.12"
+composeBom = "2026.09.00"
+activity = "1.13.0"
+room = "3.0.3"
+sqlite = "2.7.1"
+camera = "1.6.2"
+mlkitBarcode = "17.3.0"
+zxing = "3.5.4"
+coroutines = "1.11.0"
+junit = "4.13.2"
+ktlint = "1.8.0"
+
+[libraries]
+compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
+compose-material3 = { group = "androidx.compose.material3", name = "material3" }
+activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activity" }
+room-runtime = { group = "androidx.room3", name = "room3-runtime", version.ref = "room" }
+room-compiler = { group = "androidx.room3", name = "room3-compiler", version.ref = "room" }
+sqlite-framework = { group = "androidx.sqlite", name = "sqlite-framework", version.ref = "sqlite" }
+camera-camera2 = { group = "androidx.camera", name = "camera-camera2", version.ref = "camera" }
+camera-view = { group = "androidx.camera", name = "camera-view", version.ref = "camera" }
+camera-mlkit = { group = "androidx.camera", name = "camera-mlkit-vision", version.ref = "camera" }
+# The bundled model, not play-services-mlkit-barcode-scanning: that one
+# downloads its model on first use, which needs the internet.
+mlkit-barcode = { group = "com.google.mlkit", name = "barcode-scanning", version.ref = "mlkitBarcode" }
+zxing-core = { group = "com.google.zxing", name = "core", version.ref = "zxing" }
+coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "coroutines" }
+junit = { group = "junit", name = "junit", version.ref = "junit" }
+ktlint = { group = "com.pinterest.ktlint", name = "ktlint-cli", version.ref = "ktlint" }
+
+[plugins]
+android-application = { id = "com.android.application", version.ref = "agp" }
+kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
+room = { id = "androidx.room3", version.ref = "room" }
