@@ -1,9 +1,10 @@
 # 004 — Publishing on Google Play
 
 Status: on internal testing (2026-11-06): 0.3.0 (code 3), Play App Signing
-on, the Play OAuth client made. 0.3.1 (code 4) is drafted on closed testing,
-for India and Nepal, waiting for the App content forms. The steps, the listing text and the Play
-Console's forms are in [`docs/play-store.md`](../play-store.md).
+on, the Play OAuth client made. 0.3.1 (code 4) is on closed testing, for India
+and Nepal, sent for review with the listing and App content (2026-11-07). The
+steps, the listing text and the Play Console's forms are in
+[`docs/play-store.md`](../play-store.md).
 
 ## Problem
 
@@ -53,11 +54,12 @@ account created since November 2023 must first run a closed test with at
 least 12 testers for 14 days before Play opens production. An organisation
 account skips that, but needs a D-U-N-S number.
 
-**Declare data sync as collected, though no server of ours gets it.** Play
-counts anything the app sends off the phone. Sync puts the shop's details,
-products and bills in the shop's own Drive, so the Data safety form says
-so: optional, not shared, encrypted in transit, and deletable. Saying less
-and being found out costs the listing. Saying more costs nothing.
+**Declare no data collected, though sync sends data to Drive.** Play
+counts as collected what leaves the phone, but its Data safety help exempts
+data a user keeps in their own cloud storage, such as Google Drive, under
+that provider's terms, when the developer never gets it. That is Galla's
+sync: the shop's own account, its own Drive, and no server of ours. The
+privacy policy still says what goes to Drive.
 
 ## Rejected
 
@@ -68,5 +70,9 @@ and being found out costs the listing. Saying more costs nothing.
   each phone in hand, and "install unknown apps" left on.
 - **Another store (F-Droid, Indus).** The shop's phones already have Play,
   and sign-in for sync goes through Play services anyway.
+- **Declaring sync as collected** (name, address and phone, bills, UPI ID,
+  products). It was the first answer, on the view that saying more costs
+  nothing. But the listing would then tell a shop that Galla's developer
+  gets its personal and financial data, and no one but the shop ever does.
 - **Ads or a paid app.** Galla is for one shop, and ads would bring an SDK
   that goes online.

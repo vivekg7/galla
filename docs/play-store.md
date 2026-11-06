@@ -150,23 +150,11 @@ adb shell wm size reset
 
 ### Data safety
 
-- Collects or shares user data: **yes**, because sync sends data to Drive.
-- Encrypted in transit: **yes** (Drive's API is HTTPS only).
-- Account creation: **none**. Google sign-in only grants Drive access; Galla
-  has no account to delete.
-- Users can ask for their data to be deleted: **yes**. Uninstalling deletes
-  it from the phone, and the Drive copy is deleted from Drive's settings
-  (see `PRIVACY.md`).
-
-Data types, all **collected, not shared, optional, for app functionality**,
-and only when sync is on:
-
-| Type                                        | What it is in Galla                    |
-| ------------------------------------------- | -------------------------------------- |
-| Personal info → Name, Address, Phone        | The shop's details printed on the slip |
-| Financial info → Purchase history           | The shop's bills                       |
-| Financial info → Other financial info       | The shop's UPI ID                      |
-| App activity → Other user-generated content | Products, prices and stock             |
-
-Not collected: the account's email address, which stays on the phone to show
-which account syncs, and camera images, which are read on the phone.
+- Collects or shares user data: **no**. Galla has no server. Sync goes from
+  the phone to the shop's own Google Drive, through the account's own
+  sign-in, and Play's Data safety help exempts exactly that: data a user
+  puts in their own cloud storage, under that provider's terms, that the
+  developer never gets. The store listing then says "No data collection
+  declared" and "No data shared with third parties".
+- If Galla ever sends anything anywhere else (a server, analytics, a crash
+  reporter), this answer changes with it.
