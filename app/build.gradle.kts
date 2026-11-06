@@ -27,8 +27,8 @@ android {
         minSdk = 30
         targetSdk = 37
         // Play refuses a versionCode it has seen: raise it for every upload.
-        versionCode = 3
-        versionName = "0.3.0"
+        versionCode = 4
+        versionName = "0.3.1"
         // Phones only: ML Kit's scanner is native code, and the x86 copies
         // (emulators, a few old tablets) would add 12 MB.
         ndk { abiFilters += listOf("arm64-v8a", "armeabi-v7a") }
