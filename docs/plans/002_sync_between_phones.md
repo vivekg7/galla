@@ -1,7 +1,8 @@
 # 002 — Sync between the shop's phones through Google Drive
 
 Status: built (v0.2.0, 2026-11-01). Revises two decisions of
-[001](001_offline_shop_app.md): "offline, enforced" and "no sync".
+[001](001_offline_shop_app.md): "offline, enforced" and "no sync". A new
+phone now signs in from its welcome screen: [003](003_welcome_and_sign_in.md).
 
 ## Problem
 
@@ -133,8 +134,11 @@ for little gain.
    `io.github.vivekg7.galla.debug` (debug), with the SHA-1 of the key that
    signs it (`keytool -list -v -keystore <keystore>`). All three phones must
    run builds signed with the same key.
-5. On the phone with the shop's data: Shop → Turn on sync, pick the shop
-   account. Then do the same on the other two phones.
+5. On the phone with the shop's data: Shop → Sign in with Google, pick the
+   shop account. On a new phone, the welcome screen's "Sign in with Google"
+   does the same, and joins the shop without asking if another phone set it
+   up ([003](003_welcome_and_sign_in.md)). Then sign in on the other two
+   phones.
 
 ## Rejected
 

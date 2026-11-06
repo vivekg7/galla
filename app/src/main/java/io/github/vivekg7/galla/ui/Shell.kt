@@ -1,12 +1,15 @@
 package io.github.vivekg7.galla.ui
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
@@ -21,6 +24,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import io.github.vivekg7.galla.app
+import io.github.vivekg7.galla.data.Db
+import io.github.vivekg7.galla.data.ShopInfo
+import io.github.vivekg7.galla.data.Sync
 
 enum class Tab(
     val label: String,
@@ -73,12 +79,31 @@ val LocalNav = staticCompositionLocalOf<Nav> { error("no Nav") }
 @Composable
 fun Shell() {
     val app = LocalContext.current.app
-    // Nothing until the shop is read: the start tab depends on it, and a
+    // Nothing until the settings are read: they decide what shows, and a
     // Bill screen drawn for one frame would ask for the camera.
-    val shop = app.shop.collectAsState().value ?: return
+    val settings = app.settings.collectAsState().value ?: return
+    val joining =
+        app.welcome.busy
+            .collectAsState()
+            .value != null
 
-    // First run: the slip needs a shop name and the QR a UPI ID before the first bill.
-    val nav = remember { Nav(if (shop.name.isBlank()) Tab.Settings else Tab.Bill) }
+    // First run: sign in or not, then the shop's name, which the slip opens with.
+    // A phone joining a shop gets the name from Drive; the welcome screen stays
+    // until it has the rest of the shop's data too.
+    val shop = ShopInfo.from(settings)
+    if (joining || shop.name.isBlank()) {
+        val values = settings.associate { it.key to it.value }
+        Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).safeDrawingPadding()) {
+            if (joining || (values[Db.Triggers.DEVICE] == null && values[Welcome.LOCAL] == null)) {
+                WelcomeScreen()
+            } else {
+                SetupScreen(shop, values[Sync.ACCOUNT])
+            }
+        }
+        return
+    }
+
+    val nav = remember { Nav(Tab.Bill) }
     val top = nav.top
 
     BackHandler(enabled = nav.stack.size > 1 || top != Route.Home(Tab.Bill)) { nav.back() }

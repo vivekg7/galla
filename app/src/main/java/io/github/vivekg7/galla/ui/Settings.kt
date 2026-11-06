@@ -2,7 +2,6 @@ package io.github.vivekg7.galla.ui
 
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -14,8 +13,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -33,13 +30,11 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import io.github.vivekg7.galla.BuildConfig
 import io.github.vivekg7.galla.app
-import io.github.vivekg7.galla.data.Auth
 import io.github.vivekg7.galla.data.Backup
 import io.github.vivekg7.galla.data.Db
 import io.github.vivekg7.galla.data.Drive
 import io.github.vivekg7.galla.data.Setting
 import io.github.vivekg7.galla.data.ShopInfo
-import io.github.vivekg7.galla.data.SignInNeeded
 import io.github.vivekg7.galla.data.Sync
 import io.github.vivekg7.galla.data.isUpiId
 import io.github.vivekg7.galla.data.saveShop
@@ -58,16 +53,7 @@ fun SettingsScreen() {
     val saved = app.shop.collectAsState().value ?: return
     val settings by app.dao.settings().collectAsState(initial = emptyList())
 
-    // Keyed on the saved details: another phone's edit, synced in, shows here.
-    var name by rememberSaveable(saved) { mutableStateOf(saved.name) }
-    var address by rememberSaveable(saved) { mutableStateOf(saved.address) }
-    var phone by rememberSaveable(saved) { mutableStateOf(saved.phone) }
-    var upi by rememberSaveable(saved) { mutableStateOf(saved.upiId) }
-    var payee by rememberSaveable(saved) { mutableStateOf(saved.payee) }
-    var footer by rememberSaveable(saved) { mutableStateOf(saved.footer) }
     var restoreFrom by remember { mutableStateOf<android.net.Uri?>(null) }
-    val edited = ShopInfo(name.trim(), address.trim(), phone.trim(), upi.trim(), payee.trim(), footer.trim())
-    val upiError = if (upi.isNotBlank() && !isUpiId(upi)) "Looks like name@bank, e.g. 9876543210@ybl" else null
 
     val export =
         rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/octet-stream")) { uri ->
@@ -86,34 +72,7 @@ fun SettingsScreen() {
             Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
-            if (saved.name.isBlank()) {
-                Card(Modifier.fillMaxWidth().padding(bottom = 8.dp), colors = CardDefaults.cardColors(MaterialTheme.colorScheme.secondaryContainer)) {
-                    Text(
-                        "Welcome to Galla. Enter your shop's name for the slip, and your UPI ID so each bill shows a QR code for its total.",
-                        Modifier.padding(16.dp),
-                    )
-                }
-            }
-            Text("On the slip", style = MaterialTheme.typography.titleSmall)
-            Field("Shop name", name, { name = it })
-            Field("Address", address, { address = it }, singleLine = false)
-            Field("Phone", phone, { phone = it }, kind = Kind.Phone)
-            Field("Message at the bottom", footer, { footer = it })
-
-            Text("UPI payments", style = MaterialTheme.typography.titleSmall, modifier = Modifier.padding(top = 8.dp))
-            Field("UPI ID", upi, { upi = it.trim() }, kind = Kind.Email, error = upiError, hint = "From your UPI app's profile, e.g. 9876543210@ybl")
-            Field("Payee name", payee, { payee = it }, hint = "The name customers see when paying; your shop name if empty")
-
-            Button(
-                onClick = {
-                    scope.launch {
-                        app.dao.saveShop(edited, saved)
-                        context.toast("Saved")
-                    }
-                },
-                enabled = edited != saved && upiError == null,
-                modifier = Modifier.fillMaxWidth().padding(top = 8.dp).height(52.dp),
-            ) { Text("Save") }
+            ShopForm(saved, "Save") { context.toast("Saved") }
 
             HorizontalDivider(Modifier.padding(vertical = 16.dp))
             SyncSection(settings)
@@ -160,6 +119,51 @@ fun SettingsScreen() {
     }
 }
 
+/**
+ * The shop's details as the slip prints them, laid out in the caller's
+ * Column: in Shop, and when a new shop is set up. A name is required, since
+ * the slip opens with it.
+ */
+@Composable
+fun ShopForm(
+    saved: ShopInfo,
+    button: String,
+    onSaved: () -> Unit = {},
+) {
+    val app = LocalContext.current.app
+    val scope = rememberCoroutineScope()
+    // Keyed on the saved details: another phone's edit, synced in, shows here.
+    var name by rememberSaveable(saved) { mutableStateOf(saved.name) }
+    var address by rememberSaveable(saved) { mutableStateOf(saved.address) }
+    var phone by rememberSaveable(saved) { mutableStateOf(saved.phone) }
+    var upi by rememberSaveable(saved) { mutableStateOf(saved.upiId) }
+    var payee by rememberSaveable(saved) { mutableStateOf(saved.payee) }
+    var footer by rememberSaveable(saved) { mutableStateOf(saved.footer) }
+    val edited = ShopInfo(name.trim(), address.trim(), phone.trim(), upi.trim(), payee.trim(), footer.trim())
+    val upiError = if (upi.isNotBlank() && !isUpiId(upi)) "Looks like name@bank, e.g. 9876543210@ybl" else null
+
+    Text("On the slip", style = MaterialTheme.typography.titleSmall)
+    Field("Shop name", name, { name = it })
+    Field("Address", address, { address = it }, singleLine = false)
+    Field("Phone", phone, { phone = it }, kind = Kind.Phone)
+    Field("Message at the bottom", footer, { footer = it })
+
+    Text("UPI payments", style = MaterialTheme.typography.titleSmall, modifier = Modifier.padding(top = 8.dp))
+    Field("UPI ID", upi, { upi = it.trim() }, kind = Kind.Email, error = upiError, hint = "From your UPI app's profile, e.g. 9876543210@ybl")
+    Field("Payee name", payee, { payee = it }, hint = "The name customers see when paying; your shop name if empty")
+
+    Button(
+        onClick = {
+            scope.launch {
+                app.dao.saveShop(edited, saved)
+                onSaved()
+            }
+        },
+        enabled = edited != saved && edited.name.isNotEmpty() && upiError == null,
+        modifier = Modifier.fillMaxWidth().padding(top = 8.dp).height(52.dp),
+    ) { Text(button) }
+}
+
 /** What [SyncSection] holds between signing in and the person confirming. */
 private class Joining(
     val drive: Drive,
@@ -197,35 +201,20 @@ private fun SyncSection(settings: List<Setting>) {
             busy = false
         }
 
-    val signIn =
-        rememberLauncherForActivityResult(ActivityResultContracts.StartIntentSenderForResult()) { result ->
-            runCatching { Auth.tokenFrom(app, result.data) }
-                .onSuccess { if (phone == null) begin(it) else syncNow() }
-                .onFailure { context.toast("Not signed in") }
-        }
-
-    fun turnOn() =
-        scope.launch {
-            try {
-                begin(Auth.token(app, null))
-            } catch (e: SignInNeeded) {
-                signIn.launch(IntentSenderRequest.Builder(e.intent).build())
-            } catch (e: Exception) {
-                context.toast("Google sign-in failed: ${e.message}")
-            }
-        }
+    val signIn = rememberSignIn { if (phone == null) begin(it) else syncNow() }
 
     Text("Sync between phones", style = MaterialTheme.typography.titleSmall)
     if (phone == null) {
         Text(
-            "Keep the shop's phones in step through Google Drive. Every phone signs in to the shop's one Google account, " +
-                "and Galla keeps its data in a hidden folder there. Selling works without internet; changes go up when the phone is online.",
+            "Not signed in: the shop's data is on this phone only. Sign in to keep the shop's phones in step through Google Drive. " +
+                "Every phone signs in to the shop's one Google account, and Galla keeps its data in a hidden folder there. " +
+                "Selling works without internet; changes go up when the phone is online.",
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         status.error?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error) }
-        Button(onClick = ::turnOn, enabled = !busy, modifier = Modifier.fillMaxWidth().padding(top = 8.dp)) {
-            Text(if (busy) "Checking Google Drive…" else "Turn on sync")
+        Button(onClick = { signIn(null) }, enabled = !busy, modifier = Modifier.fillMaxWidth().padding(top = 8.dp)) {
+            Text(if (busy) "Checking Google Drive…" else "Sign in with Google")
         }
     } else {
         val last = values[Sync.LAST]?.toLongOrNull()
@@ -241,7 +230,7 @@ private fun SyncSection(settings: List<Setting>) {
         Row(Modifier.fillMaxWidth().padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             val intent = status.signIn
             if (intent != null) {
-                Button(onClick = { signIn.launch(IntentSenderRequest.Builder(intent).build()) }, Modifier.weight(1f)) { Text("Sign in again") }
+                Button(onClick = { signIn(intent) }, Modifier.weight(1f)) { Text("Sign in again") }
             } else {
                 Button(onClick = { syncNow() }, enabled = !status.running, modifier = Modifier.weight(1f)) {
                     Text(if (status.running) "Syncing…" else "Sync now")
