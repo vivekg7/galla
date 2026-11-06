@@ -11,6 +11,8 @@ private val Green = Color(0xFF2F7A55)
 private val GreenLight = Color(0xFF7FCFA4)
 private val Turmeric = Color(0xFFC98A1B)
 
+// Every surface and outline tone is set: one left out keeps Material's lavender
+// default (a plain Card is drawn in surfaceContainerHighest).
 private val Light =
     lightColorScheme(
         primary = Green,
@@ -24,8 +26,14 @@ private val Light =
         background = Color.White,
         surface = Color.White,
         surfaceVariant = Color(0xFFF1F4F2),
+        surfaceContainerLowest = Color.White,
+        surfaceContainerLow = Color(0xFFF7F9F8),
         surfaceContainer = Color(0xFFF1F4F2),
         surfaceContainerHigh = Color(0xFFEAEFEC),
+        surfaceContainerHighest = Color(0xFFE3EAE6),
+        onSurfaceVariant = Color(0xFF414944),
+        outline = Color(0xFF717973),
+        outlineVariant = Color(0xFFC1C9C3),
         error = Color(0xFFB3261E),
     )
 
@@ -39,6 +47,15 @@ private val Dark =
         secondaryContainer = Color(0xFF5A4000),
         background = Color(0xFF121413),
         surface = Color(0xFF121413),
+        surfaceVariant = Color(0xFF2E3330),
+        surfaceContainerLowest = Color(0xFF0D0F0E),
+        surfaceContainerLow = Color(0xFF1A1C1B),
+        surfaceContainer = Color(0xFF1E211F),
+        surfaceContainerHigh = Color(0xFF282B2A),
+        surfaceContainerHighest = Color(0xFF333735),
+        onSurfaceVariant = Color(0xFFC1C9C3),
+        outline = Color(0xFF8B938D),
+        outlineVariant = Color(0xFF414944),
     )
 
 @Composable
