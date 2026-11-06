@@ -6,11 +6,15 @@ this way: [plans/004](plans/004_play_store.md).
 ## Once
 
 1. **Upload key.** Make it in the git-ignored `local/` folder, and keep a
-   copy of the file and its password outside this laptop:
+   copy of the file and its password outside this laptop. With the password
+   in `KSPASS`, so it is never typed or shown (PKCS12 keeps one password for
+   the store and the key):
 
    ```sh
-   keytool -genkeypair -v -keystore local/upload.jks -alias upload \
-     -keyalg RSA -keysize 4096 -validity 10000
+   keytool -genkeypair -keystore local/upload.jks -storetype PKCS12 \
+     -alias upload -keyalg RSA -keysize 4096 -validity 10000 \
+     -dname "CN=Vivek Kumar Gupta, O=Galla, C=IN" \
+     -storepass:env KSPASS -keypass:env KSPASS
    ```
 
    Then `local/keystore.properties`:
@@ -35,11 +39,19 @@ this way: [plans/004](plans/004_play_store.md).
    the opt-in link once, on the phone, and installs from Play.
 5. **Sync on Play builds:** copy the SHA-1 under Test and release → App
    integrity → App signing (the _app signing_ key, not the upload key). In
-   Google Cloud Console, in the same project as the debug client, create an
-   OAuth client: Android, package `io.github.vivekg7.galla`, that SHA-1.
+   Google Cloud Console, in the same project as the debug client (`galla-513900`),
+   create an OAuth client: Android, package `io.github.vivekg7.galla`, that
+   SHA-1. Galla's is `6E:7E:11:4D:A3:77:39:E1:84:2D:C7:C6:6B:98:AE:40:D2:7F:47:EA`
+   (client "galla play").
 6. **Move each shop phone** to the Play app: install it, Sign in with Google
    on its welcome screen, and check that the shop's products and bills are
    there. Then uninstall the debug build.
+7. **Closed testing** (Alpha track): a release of the current bundle (upload
+   it, or add it from the library if internal testing has it), in India and
+   Nepal only, with the same tester list and
+   thecrylocompany@gmail.com for feedback. Play reviews it only once the
+   store listing and every App content form below are done; then Publishing
+   overview → Send for review.
 
 ## Each release
 
@@ -91,7 +103,7 @@ this way: [plans/004](plans/004_play_store.md).
 >
 > Galla is free and open source: github.com/vivekg7/galla
 
-**Category:** Business. **Contact email:** vivek@ivy.homes. **Website:**
+**Category:** Business. **Contact email:** thecrylocompany@gmail.com (the Crylo developer account's). **Website:**
 `https://github.com/vivekg7/galla`. **Privacy policy:**
 `https://github.com/vivekg7/galla/blob/main/PRIVACY.md`.
 

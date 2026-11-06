@@ -1,6 +1,8 @@
 # 004 — Publishing on Google Play
 
-Status: planned (2026-11-06). The steps, the listing text and the Play
+Status: on internal testing (2026-11-06): 0.3.0 (code 3), Play App Signing
+on, the Play OAuth client made. 0.3.1 (code 4) is drafted on closed testing,
+for India and Nepal, waiting for the App content forms. The steps, the listing text and the Play
 Console's forms are in [`docs/play-store.md`](../play-store.md).
 
 ## Problem
