@@ -123,7 +123,11 @@ for little gain.
 3. Set up the OAuth consent screen: External, with the shop account as a
    test user. Then publish it ("In production"). `drive.appdata` is a
    non-sensitive scope, so Google's review shouldn't be needed. An app left in
-   "Testing" may have to sign in again every 7 days.
+   "Testing" may have to sign in again every 7 days. Publishing needs a
+   homepage and a privacy policy on the Branding page: the repository
+   (`https://github.com/vivekg7/galla`) and its
+   [`PRIVACY.md`](../../PRIVACY.md), with `github.com` as the authorized
+   domain.
 4. Create an OAuth client of type Android for each build the phones run:
    package `io.github.vivekg7.galla` (release) or
    `io.github.vivekg7.galla.debug` (debug), with the SHA-1 of the key that
