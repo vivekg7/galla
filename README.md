@@ -32,11 +32,13 @@ make install   # build the debug app and install it on the phone over adb
 make check     # ktlint, Android lint, unit tests
 make test-device  # database migration and sync tests, on an emulator
 make release   # release APK; signed if local/keystore.properties exists
+make bundle    # release app bundle for Google Play
 ```
 
 `local/keystore.properties` holds `storeFile`, `storePassword`, `keyAlias`
 and `keyPassword`, with `storeFile` relative to the repository root. The
-`local/` folder is git-ignored.
+`local/` folder is git-ignored. Publishing on Google Play, and what to fill
+in on Play Console: [docs/play-store.md](docs/play-store.md).
 
 ## Credits
 

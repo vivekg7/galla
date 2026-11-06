@@ -132,8 +132,10 @@ for little gain.
 4. Create an OAuth client of type Android for each build the phones run:
    package `io.github.vivekg7.galla` (release) or
    `io.github.vivekg7.galla.debug` (debug), with the SHA-1 of the key that
-   signs it (`keytool -list -v -keystore <keystore>`). All three phones must
-   run builds signed with the same key.
+   signs it (`keytool -list -v -keystore <keystore>`). For builds from Google
+   Play, that is Play's app signing key, shown in Play Console
+   ([004](004_play_store.md)). All three phones must run builds signed with
+   the same key.
 5. On the phone with the shop's data: Shop → Sign in with Google, pick the
    shop account. On a new phone, the welcome screen's "Sign in with Google"
    does the same, and joins the shop without asking if another phone set it
