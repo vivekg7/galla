@@ -59,15 +59,21 @@ fun ShopDao.shop(): Flow<ShopInfo> = settings().map(ShopInfo::from)
  * Writes only the fields that changed: each is its own setting, and with
  * phones syncing, the last edit of each field wins. Writing all of them would
  * undo another phone's edit of a field this one did not touch.
+ *
+ * One write, not one per field: on a new shop the name swaps the setup screen
+ * for the shop, which cancels the screen's coroutine and would drop the
+ * fields not yet written.
  */
 suspend fun ShopDao.saveShop(
     info: ShopInfo,
     old: ShopInfo,
-) = info
-    .toSettings()
-    .zip(old.toSettings())
-    .filter { (new, was) -> new.value != was.value }
-    .forEach { putSetting(it.first) }
+) = putSettings(
+    info
+        .toSettings()
+        .zip(old.toSettings())
+        .filter { (new, was) -> new.value != was.value }
+        .map { it.first },
+)
 
 /** One line of the bill being made. [productId] is null for an item typed in at the counter. */
 data class CartLine(

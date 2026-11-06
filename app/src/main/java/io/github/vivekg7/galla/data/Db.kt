@@ -274,6 +274,10 @@ interface ShopDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun putSetting(setting: Setting)
 
+    /** In one transaction, so the screen sees them land together (saveShop). */
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun putSettings(settings: List<Setting>)
+
     @Query("SELECT value FROM setting WHERE key = :key")
     suspend fun setting(key: String): String?
 
