@@ -126,7 +126,7 @@ adb shell wm size reset
 
 | Form               | Answer                                                                                                                                                          |
 | ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Privacy policy     | The `PRIVACY.md` link above                                                                                                                                     |
+| Privacy policy     | The `PRIVACY.md` link above. Play wants it in the app too: Shop links to it, at the bottom                                                                      |
 | App access         | All functionality available without special access ("Continue without signing in"; sync works with any Google account)                                          |
 | Ads                | No ads                                                                                                                                                          |
 | Content rating     | Category: utility/productivity. No violence, sexual content, language, drugs or gambling. Users don't interact with each other in the app. Expect Everyone / 3+ |
