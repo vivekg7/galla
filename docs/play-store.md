@@ -32,7 +32,11 @@ this way: [plans/004](plans/004_play_store.md).
    with at least 12 testers before it can publish to production. An
    organisation account needs a D-U-N-S number instead.
 3. **Create the app:** name `Galla`, app (not game), free. Play App Signing
-   stays on, with the key Google generates.
+   stays on, with the key Google generates. Then turn automatic protection
+   off, before the first upload: Protected with Play → Automatic protection →
+   Manage → Installer check off → Save → Turn off. Play turns it on for a new
+   app, and adds it to every bundle uploaded while it is on (App bundle
+   explorer calls those "Enhanced"). Why: [plans/004](plans/004_play_store.md).
 4. **First upload:** `make check && make bundle`, then upload
    `app/build/outputs/bundle/release/app-release.aab` to Test and release →
    Internal testing. Add the shop's Google accounts as testers. Each opens

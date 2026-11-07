@@ -2,8 +2,11 @@
 
 Status: on internal testing (2026-11-06): 0.3.0 (code 3), Play App Signing
 on, the Play OAuth client made. 0.3.1 (code 4) is on closed testing, for India
-and Nepal, sent for review with the listing and App content (2026-11-07). The
-steps, the listing text and the Play Console's forms are in
+and Nepal, sent for review with the listing and App content (2026-11-07).
+0.3.2 (code 5), the first build without Play's automatic protection, is on
+internal testing (2026-11-07). On closed testing it waits as a saved change:
+every Send for review since the first one returns "Precondition check
+failed". The steps, the listing text and the Play Console's forms are in
 [`docs/play-store.md`](../play-store.md).
 
 ## Problem
@@ -60,6 +63,19 @@ data a user keeps in their own cloud storage, such as Google Drive, under
 that provider's terms, when the developer never gets it. That is Galla's
 sync: the shop's own account, its own Drive, and no server of ours. The
 privacy policy still says what goes to Drive.
+
+**Play's automatic protection off.** Play turns it on for a new app and adds
+runtime checks to the code of every bundle uploaded while it is on, and only
+Play's copy has them. On a phone where the check decides the app did not come
+from Play, it kills the app at launch and opens Play's "Get this app from
+Play" page. Nothing crashes, so no report reaches Android vitals. A tester's
+vivo T4x (Android 16) closed 0.3.1 at every launch, though it was installed
+from Play (2026-11-07). Galla's own release build opened on a stock Android 16
+emulator, an Android 17 one and a moto g45. Play's APKs for that vivo,
+installed on the moto, closed at launch and showed Play's page. That is the
+check working as designed against a USB install, but it fits what the vivo
+did. The check guards a paid app against copies, but Galla is free and its
+source is public. What it can do instead is lock a shop out of its own tills.
 
 ## Rejected
 
