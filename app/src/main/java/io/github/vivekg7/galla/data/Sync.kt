@@ -24,6 +24,7 @@ import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.IOException
 import java.time.Instant
+import java.util.Locale
 import java.util.zip.GZIPInputStream
 import java.util.zip.GZIPOutputStream
 
@@ -140,7 +141,7 @@ class Sync(
                             dir,
                             "phone.json",
                         ).apply { writeText("""{"model":${org.json.JSONObject.quote(model)},"joined":${System.currentTimeMillis()}}""") }
-                    remote.upload("phone-%02d.json".format(phone), marker)
+                    remote.upload("phone-%02d.json".format(Locale.ROOT, phone), marker)
                     marker.delete()
                 } catch (e: Exception) {
                     leaveNow()
@@ -302,7 +303,7 @@ class Sync(
                 }
             } ?: return
         val seq = sent() + 1
-        remote.upload("b-%02d-%08d.json.gz".format(phone, seq), file)
+        remote.upload("b-%02d-%08d.json.gz".format(Locale.ROOT, phone, seq), file)
         file.delete()
         db.useWriterConnection { c ->
             c.withTransaction(Transactor.SQLiteTransactionType.IMMEDIATE) {
@@ -339,7 +340,7 @@ class Sync(
             }
         }
         val now = System.currentTimeMillis()
-        val made = remote.upload("snap-%02d-%d.json.gz".format(phone, now), file)
+        val made = remote.upload("snap-%02d-%d.json.gz".format(Locale.ROOT, phone, now), file)
         file.delete()
         // The previous one is no longer needed; if deleting it fails, a spare old snapshot does no harm.
         dao.setting(SNAP_ID)?.let { runCatching { remote.delete(it) } }
@@ -538,6 +539,10 @@ class Sync(
         const val MAX_PHONE = 99L
         private const val SNAPSHOT_EVERY = 7 * 24 * 3600 * 1000L
 
+        // Names are written with Locale.ROOT: the phone's language would give
+        // Devanagari or Bengali digits in Nepali, Marathi, Bengali or Assamese.
+        // Android's \d and toLong() happen to read those too, but desktop Java's
+        // \d is 0-9 only, and names on Drive should not depend on the difference.
         private val PHONE = Regex("phone-(\\d+)\\.json")
         private val BATCH = Regex("b-(\\d+)-(\\d+)\\.json\\.gz")
         private val SNAP = Regex("snap-(\\d+)-(\\d+)\\.json\\.gz")

@@ -22,10 +22,12 @@ import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.io.File
 import java.time.Instant
+import java.util.Locale
 
 /** Phones that sync through a folder in memory, standing in for Drive (Drive.kt). */
 @RunWith(AndroidJUnit4::class)
@@ -202,6 +204,25 @@ class SyncTest {
             for (x in listOf(a, b)) {
                 assertEquals(onA, x.dao.byBarcode("8901058000290")!!.id)
                 assertNull(x.dao.productNow(onB)!!.barcode)
+            }
+        }
+
+    @Test fun aPhoneInNepaliSyncsLikeAnyOther() =
+        runBlocking {
+            val default = Locale.getDefault()
+            // Nepali writes numbers in Devanagari digits: file names must not.
+            Locale.setDefault(Locale.forLanguageTag("ne-NP"))
+            try {
+                val a = phone("a")
+                val b = phone("b")
+                a.sync.join(folder, "shop@gmail.com", "A")
+                b.sync.join(folder, "shop@gmail.com", "B")
+                val rice = b.dao.create(Product(name = "Rice", unit = Measure.KG, price = 6000, stock = 5_000))
+                syncAll(a, b)
+                assertEquals("Rice", a.dao.productNow(rice)!!.name)
+                for ((file, _) in folder.files.values) assertTrue(file.name, file.name.all { it.code < 128 })
+            } finally {
+                Locale.setDefault(default)
             }
         }
 
