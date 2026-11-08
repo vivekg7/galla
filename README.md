@@ -23,6 +23,12 @@ way: [docs/plans/001](docs/plans/001_offline_shop_app.md), and for sync
 [docs/plans/002](docs/plans/002_sync_between_phones.md), which also has the
 one-time Google Cloud setup sync needs.
 
+## Get it
+
+[Galla on Google Play](https://play.google.com/store/apps/details?id=io.github.vivekg7.galla).
+It is in closed testing for now, so the listing opens only for its testers
+until it reaches production.
+
 ## Build
 
 Needs Android Studio, or just its bundled JDK, and the Android SDK.
