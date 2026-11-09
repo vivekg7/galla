@@ -56,6 +56,11 @@ this way: [plans/004](plans/004_play_store.md).
    thecrylocompany@gmail.com for feedback. Play reviews it only once the
    store listing and every App content form below are done; then Publishing
    overview → Send for review.
+8. **Open testing and production** stay locked until Play grants production
+   access (the 12 testers over 14 days above). Until then a review that
+   includes either fails with a bare "Precondition check failed", and takes
+   every other change in that submission down with it. Keep their changes
+   under Save for later in Publishing overview.
 
 ## Each release
 

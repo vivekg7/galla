@@ -5,9 +5,10 @@ on, the Play OAuth client made. 0.3.1 (code 4) is on closed testing, for India
 and Nepal, sent for review with the listing and App content (2026-11-07).
 0.3.2 (code 5), the first build without Play's automatic protection, reached
 internal testing (2026-11-07) and closed testing (2026-11-09). 0.3.3 (code 6)
-fixes the scanner crashing every minified build: on internal testing, and
-sent for review on closed testing (2026-11-09). Resuming open testing waits
-unsent; it cannot launch before production access anyway. The steps, the listing text and the Play Console's forms are in
+fixes the scanner crashing every minified build: on internal and closed
+testing (2026-11-09). Open testing, with 0.3.3, is saved for later: Play
+answers "Precondition check failed" to any review that includes it until the
+account has production access. The steps, the listing text and the Play Console's forms are in
 [`docs/play-store.md`](../play-store.md).
 
 ## Problem
