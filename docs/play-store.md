@@ -62,7 +62,12 @@ this way: [plans/004](plans/004_play_store.md).
 1. Raise `versionCode` (by one) and `versionName` in `app/build.gradle.kts`.
    Play refuses a code it has seen.
 2. `make check`, then `make install` and try the change on a phone.
-3. `make bundle`, upload the `.aab` to the track, and write what changed in
+3. `make release`, install `app/build/outputs/apk/release/app-release.apk`
+   on an emulator or a phone without the Play app, and open each screen once,
+   the scanner included. Only this build is minified: what R8 strips (0.3.2
+   lost ML Kit's registrar constructors, so the scanner crashed on open) never
+   shows in the debug app.
+4. `make bundle`, upload the `.aab` to the track, and write what changed in
    the release notes.
 
 ## Store listing
